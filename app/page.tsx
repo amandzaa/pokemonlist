@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import TextField from "@mui/material/TextField";
+import { useSearchParams } from "next/navigation";
 import Typography from "@mui/material/Typography";
 import Pagination from "@mui/material/Pagination";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -12,14 +12,12 @@ type NamedAPIResource = { name: string; url: string };
 type PokemonType = { name: string; url: string };
 
 export default function Home() {
-  const [search, setSearch] = useState<string>("");
+  const searchParams = useSearchParams();
+  const search = (searchParams.get("q") ?? "").toLowerCase();
   const [page, setPage] = useState<number>(1);
   const pageSize = 24;
   const {
     allPokemon,
-    types,
-    activeType,
-    setActiveType,
     isLoading,
     error,
     filtered: baseFiltered,
@@ -28,10 +26,10 @@ export default function Home() {
   } = usePokedex();
 
   const filteredList = useMemo(() => {
-    const s = search.trim().toLowerCase();
+    const s = search.trim();
     let list = s ? allPokemon.filter((p) => p.name.includes(s)) : baseFiltered;
     return list;
-  }, [allPokemon, search, activeType]);
+  }, [allPokemon, search]);
 
   // prefetch visible pokemon types
   useEffect(() => {
@@ -53,31 +51,7 @@ export default function Home() {
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <Typography variant="h3" component="h1" className="font-extrabold mb-6">
-        Pokedex
-      </Typography>
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex gap-2 overflow-x-auto">
-          {types.map((t) => (
-            <button
-              key={t.name}
-              onClick={() => setActiveType(t.name)}
-              className={`px-4 py-2 rounded-full text-sm capitalize ${
-                activeType === t.name ? "bg-primary text-white" : "bg-gray-200"
-              }`}
-            >
-              {t.name}
-            </button>
-          ))}
-        </div>
-        <TextField
-          label="Search"
-          placeholder="pikachu"
-          size="small"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
+      <div className="h-4" />
 
       {isLoading && (
         <div className="w-full flex justify-center py-16">

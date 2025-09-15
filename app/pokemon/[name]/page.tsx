@@ -3,12 +3,12 @@ import Link from "next/link";
 import Chip from "@mui/material/Chip";
 import Typography from "@mui/material/Typography";
 import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import CardMedia from "@mui/material/CardMedia";
 import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DetailTabs from "@/components/DetailTabs";
 import { getTypeGradient } from "@/components/typeColors";
+import PokeballWatermark from "@/components/PokeballWatermark";
 import {
   fetchPokemon,
   fetchEvolutions,
@@ -31,7 +31,8 @@ const getEvolutions = fetchEvolutions;
 export default async function PokemonDetail(props: {
   params: Promise<{ name: string }>;
 }) {
-  const { name } = await props.params;
+  const params = await props.params;
+  const { name } = params;
   const data = await getPokemon(name);
   const evolutions = await getEvolutions(data.species.url);
   const image =
@@ -42,82 +43,157 @@ export default async function PokemonDetail(props: {
   const grad = getTypeGradient(typeNames);
 
   return (
-    <main className="container mx-auto px-0 md:px-4 pb-8">
-      <div className="px-4 pt-4">
-        <Button
-          component={Link as any}
-          href="/"
-          startIcon={<ArrowBackIcon />}
-          variant="outlined"
-        >
-          Kembali
-        </Button>
+    <main className="min-h-screen bg-gray-50">
+      {/* Header with Back Button */}
+      <div className="bg-white shadow-sm">
+        <div className="container mx-auto px-4 py-4">
+          <Button
+            component={Link as any}
+            href="/"
+            startIcon={<ArrowBackIcon />}
+            variant="outlined"
+            sx={{ borderRadius: "20px" }}
+          >
+            Back to Pokédex
+          </Button>
+        </div>
       </div>
 
-      <div className="relative">
-        <div
-          className="h-[280px] w-full"
-          style={{
+      {/* Main Pokémon Card */}
+      <div className="container mx-auto px-4 pt-8 max-w-4xl">
+        <Card
+          sx={{
+            borderRadius: "24px",
+            overflow: "hidden", 
+            boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
             background: `linear-gradient(135deg, ${grad.start}, ${grad.end})`,
+            color: "white",
+            position: "relative",
           }}
         >
-          <div className="container mx-auto px-4 h-full flex items-end pb-6">
-            <div className="w-full flex items-end justify-between">
-              <div>
-                <Typography
-                  variant="h3"
-                  className="capitalize font-extrabold text-white"
-                >
-                  {data.name}
-                </Typography>
-                <div className="mt-2 flex gap-2">
-                  {typeNames.map((t) => (
-                    <span
-                      key={t}
-                      className="capitalize px-3 py-1 rounded-full text-white/90 bg-white/20 backdrop-blur"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <Typography variant="h6" className="text-white/80">
+          {/* Watermark */}
+          <div className="absolute inset-0 pointer-events-none">
+            <PokeballWatermark className="absolute -right-9 top-40 w-90 h-90 opacity-10" />
+          </div>
+          {/* Pokémon Info Header */}
+          <Box sx={{ p: 4, pb: 1 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                mb: 2,
+              }}
+            >
+              <Typography
+                variant="h2"
+                sx={{
+                  fontWeight: "bold",
+                  textTransform: "capitalize",
+                  fontSize: { xs: "2.5rem", md: "3rem" },
+                  lineHeight: 1.2,
+                }}
+              >
+                {data.name}
+              </Typography>
+              <Typography
+                variant="h4"
+                sx={{
+                  opacity: 0.9,
+                  fontWeight: "bold",
+                  fontSize: { xs: "1.5rem", md: "2rem" },
+                }}
+              >
                 #{String(data.id).padStart(3, "0")}
               </Typography>
-            </div>
-          </div>
-        </div>
-        {image && (
-          <div className="container mx-auto px-4">
-            <Card className="-mt-24 mx-auto max-w-4xl">
-              <CardMedia
-                component="img"
-                image={image}
-                alt={data.name}
-                className="object-contain h-[300px]"
-              />
-            </Card>
-          </div>
-        )}
-      </div>
+            </Box>
 
-      <div className="container mx-auto px-4 max-w-4xl">
-        <DetailTabs
-          about={[
-            { label: "Height", value: `${(data.height / 10).toFixed(1)} m` },
-            { label: "Weight", value: `${(data.weight / 10).toFixed(1)} kg` },
-            {
-              label: "Abilities",
-              value: data.abilities.map((a) => a.ability.name).join(", "),
-            },
-          ]}
-          stats={data.stats.map((s) => ({
-            name: s.stat.name,
-            base: s.base_stat,
-          }))}
-          evolutions={evolutions}
-          moves={(data.moves || []).slice(0, 24).map((m) => m.move.name)}
-        />
+            {/* Type Badges */}
+            <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>
+              {typeNames.map((type) => (
+                <Chip
+                  key={type}
+                  label={type.charAt(0).toUpperCase() + type.slice(1)}
+                  sx={{
+                    backgroundColor: "rgba(255,255,255,0.25)",
+                    color: "white",
+                    fontWeight: "600",
+                    fontSize: "0.9rem",
+                    px: 2,
+                    py: 0.5,
+                    backdropFilter: "blur(10px)",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                  }}
+                />
+              ))}
+            </Box>
+          </Box>
+
+          {/* Combined Image and Tabs Container */}
+          <Box sx={{ position: "relative" }}>
+            {/* Pokémon Image */}
+            {image && (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: "350px",
+                  position: "relative",
+                  px: 1,
+                  zIndex: 2,
+                }}
+              >
+                <img
+                  src={image}
+                  alt={data.name}
+                  style={{
+                    width: "450px",
+                    height: "450px",
+                    objectFit: "contain",
+                    filter: "drop-shadow(0 15px 30px rgba(0,0,0,0.3))",
+                    position: "relative",
+                    zIndex: 2,
+                  }}
+                />
+              </Box>
+            )}
+
+            {/* Detail Tabs */}
+            <Box
+              sx={{
+                position: "relative",
+                marginTop: "-100px",
+                paddingTop: "100px",
+                zIndex: 1,
+              }}
+            >
+              <DetailTabs
+                about={[
+                  { label: "Species", value: data.species.name },
+                  {
+                    label: "Height",
+                    value: `${(data.height / 10).toFixed(1)} m`,
+                  },
+                  {
+                    label: "Weight",
+                    value: `${(data.weight / 10).toFixed(1)} kg`,
+                  },
+                  {
+                    label: "Abilities",
+                    value: data.abilities.map((a) => a.ability.name).join(", "),
+                  },
+                ]}
+                stats={data.stats.map((s) => ({
+                  name: s.stat.name,
+                  base: s.base_stat,
+                }))}
+                evolutions={evolutions}
+                moves={(data.moves || []).slice(0, 24).map((m) => m.move.name)}
+              />
+            </Box>
+          </Box>
+        </Card>
       </div>
     </main>
   );
